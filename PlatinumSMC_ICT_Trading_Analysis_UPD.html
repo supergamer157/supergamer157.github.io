@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Platinum SMC — ICT Trading Analysis</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap');
+
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --surface2: #181d24;
+    --border: #1e2530;
+    --accent: #00e5a0;
+    --accent2: #e5a000;
+    --accent3: #e54040;
+    --accent4: #4090e5;
+    --text: #c8d8e8;
+    --muted: #5a6a7a;
+    --heading: #eef4ff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .wrapper { max-width: 960px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+
+  /* ===== HERO ===== */
+  .hero {
+    padding: 5rem 0 3rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+  }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 6rem);
+    letter-spacing: 0.04em;
+    color: var(--heading);
+    line-height: 0.95;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    font-style: italic;
+    max-width: 600px;
+  }
+  .hero-meta {
+    display: flex; gap: 2rem; margin-top: 2rem;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); letter-spacing: 0.08em;
+  }
+  .hero-meta span { color: var(--accent); }
+
+  /* ===== SECTION STYLES ===== */
+  section { padding: 3.5rem 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+
+  .sec-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+  h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    color: var(--heading);
+    letter-spacing: 0.05em;
+    margin-bottom: 2rem;
+  }
+  h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    color: var(--heading);
+    letter-spacing: 0.04em;
+    margin-bottom: 0.8rem;
+  }
+  h4 {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent2);
+    margin-bottom: 0.5rem;
+  }
+
+  /* ===== METHOD CARDS ===== */
+  .method-grid { display: grid; gap: 2rem; }
+  .method-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 2px;
+    padding: 2rem 2rem 2rem 1.8rem;
+    position: relative;
+    transition: border-left-color 0.2s;
+  }
+  .method-card:nth-child(2) { border-left-color: var(--accent2); }
+  .method-card:nth-child(3) { border-left-color: var(--accent4); }
+  .method-card:nth-child(4) { border-left-color: var(--accent3); }
+  .method-card:nth-child(5) { border-left-color: #b04aff; }
+  .method-card:nth-child(6) { border-left-color: #ff6b35; }
+  .method-card:nth-child(7) { border-left-color: #00d4ff; }
+
+  .method-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+  }
+  .method-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    color: var(--border);
+    line-height: 1;
+    min-width: 2.5rem;
+  }
+  .method-card h3 { margin-bottom: 0.2rem; }
+  .method-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: rgba(0,229,160,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,229,160,0.2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+  }
+  .method-card:nth-child(2) .method-badge { background: rgba(229,160,0,0.1); color: var(--accent2); border-color: rgba(229,160,0,0.2); }
+  .method-card:nth-child(3) .method-badge { background: rgba(64,144,229,0.1); color: var(--accent4); border-color: rgba(64,144,229,0.2); }
+  .method-card:nth-child(4) .method-badge { background: rgba(229,64,64,0.1); color: var(--accent3); border-color: rgba(229,64,64,0.2); }
+  .method-card:nth-child(5) .method-badge { background: rgba(176,74,255,0.1); color: #b04aff; border-color: rgba(176,74,255,0.2); }
+  .method-card:nth-child(6) .method-badge { background: rgba(255,107,53,0.1); color: #ff6b35; border-color: rgba(255,107,53,0.2); }
+  .method-card:nth-child(7) .method-badge { background: rgba(0,212,255,0.1); color: #00d4ff; border-color: rgba(0,212,255,0.2); }
+
+  .who-uses {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.05em;
+  }
+  .who-uses strong { color: var(--text); }
+
+  /* Steps */
+  .steps { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+  .steps li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    font-size: 0.97rem;
+  }
+  .step-n {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--accent);
+    background: rgba(0,229,160,0.08);
+    border: 1px solid rgba(0,229,160,0.15);
+    border-radius: 2px;
+    min-width: 1.8rem;
+    height: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .method-card:nth-child(2) .step-n { color: var(--accent2); background: rgba(229,160,0,0.08); border-color: rgba(229,160,0,0.15); }
+  .method-card:nth-child(3) .step-n { color: var(--accent4); background: rgba(64,144,229,0.08); border-color: rgba(64,144,229,0.15); }
+  .method-card:nth-child(4) .step-n { color: var(--accent3); background: rgba(229,64,64,0.08); border-color: rgba(229,64,64,0.15); }
+  .method-card:nth-child(5) .step-n { color: #b04aff; background: rgba(176,74,255,0.08); border-color: rgba(176,74,255,0.15); }
+  .method-card:nth-child(6) .step-n { color: #ff6b35; background: rgba(255,107,53,0.08); border-color: rgba(255,107,53,0.15); }
+  .method-card:nth-child(7) .step-n { color: #00d4ff; background: rgba(0,212,255,0.08); border-color: rgba(0,212,255,0.15); }
+
+  .key-note {
+    margin-top: 1.2rem;
+    padding: 0.8rem 1rem;
+    background: rgba(0,0,0,0.3);
+    border-left: 2px solid var(--muted);
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  /* ===== BIAS SECTION ===== */
+  .bias-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:640px) { .bias-grid { grid-template-columns: 1fr; } }
+
+  .bias-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    border-radius: 2px;
+  }
+  .bias-block h4 { margin-bottom: 0.8rem; }
+  .bias-block ul { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+  .bias-block li {
+    font-size: 0.94rem;
+    padding-left: 1.2rem;
+    position: relative;
+  }
+  .bias-block li::before {
+    content: '—';
+    position: absolute; left: 0;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+  }
+
+  /* ===== CHEATSHEET ===== */
+  .cheat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width:700px) { .cheat-grid { grid-template-columns: 1fr; } }
+
+  .cheat-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+  }
+  .cheat-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.15rem;
+    color: var(--heading);
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+  }
+  .cheat-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .cheat-list li {
+    font-size: 0.9rem;
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+  .cheat-list li .dot {
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+  }
+  .cheat-list.warn li .dot { color: var(--accent3); }
+  .cheat-list.gold li .dot { color: var(--accent2); }
+  .cheat-list.blue li .dot { color: var(--accent4); }
+
+  /* ===== A+++ TRADE ===== */
+  .aplus-card {
+    background: linear-gradient(135deg, rgba(0,229,160,0.04) 0%, rgba(0,0,0,0) 60%);
+    border: 1px solid rgba(0,229,160,0.2);
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .aplus-card::before {
+    content: 'A+++';
+    position: absolute;
+    top: -1rem;
+    right: 1.5rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 8rem;
+    color: rgba(0,229,160,0.04);
+    line-height: 1;
+    pointer-events: none;
+    letter-spacing: 0.05em;
+  }
+
+  .aplus-checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media(max-width:600px) { .aplus-checklist { grid-template-columns: 1fr; } }
+
+  .aplus-item {
+    display: flex; gap: 0.8rem; align-items: flex-start;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    font-size: 0.92rem;
+  }
+  .check {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    background: rgba(0,229,160,0.1);
+    border: 1px solid rgba(0,229,160,0.25);
+    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .check-text strong {
+    display: block;
+    color: var(--heading);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.2rem;
+  }
+
+  /* ===== PROFITABILITY TABLE ===== */
+  .profit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  .profit-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-align: left;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .profit-table td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(30,37,48,0.5);
+    vertical-align: top;
+  }
+  .profit-table tr:last-child td { border-bottom: none; }
+  .profit-table td:first-child {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent2);
+    white-space: nowrap;
+  }
+  .profit-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+  /* ===== QUOTES ===== */
+  .quote-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    margin: 2rem 0;
+  }
+  .quote-item {
+    background: var(--surface);
+    padding: 1.2rem 1.5rem;
+  }
+  .quote-text {
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+  }
+  .quote-author {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.63rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* ===== SESSION TABLE ===== */
+  .session-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .session-row:last-child { border-bottom: none; }
+  .session-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    padding: 0.9rem 1rem;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+  }
+  .session-detail {
+    padding: 0.9rem 1.2rem;
+    font-size: 0.9rem;
+    background: var(--surface);
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    padding: 3rem 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  footer p {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* ===== UTILITY ===== */
+  .highlight { color: var(--accent); }
+  .highlight-gold { color: var(--accent2); }
+  .highlight-red { color: var(--accent3); }
+  .highlight-blue { color: var(--accent4); }
+  code {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82em;
+    background: rgba(255,255,255,0.06);
+    padding: 0.1em 0.4em;
+    border-radius: 2px;
+    color: var(--accent2);
+  }
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+    margin: 1.5rem 0;
+    opacity: 0.3;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<header class="hero">
+  <div class="wrapper">
+    <div class="hero-tag">// Platinum SMC Discord — Full Community Analysis</div>
+    <h1>ICT TRADING<br><span>FIELD GUIDE</span></h1>
+    <p class="hero-sub">A complete breakdown of every trading method used by real members — with step-by-step playbooks, bias identification, and the A+++ trade checklist.</p>
+    <div class="hero-meta">
+      <span>MARKET: <span>NQ · ES · GOLD · FOREX</span></span>
+      <span>FRAMEWORK: <span>ICT / SMC</span></span>
+      <span>DATE: <span>MARCH 2026</span></span>
+    </div>
+  </div>
+</header>
+
+<!-- ===== TRADING METHODS ===== -->
+<section>
+  <div class="wrapper">
+    <div class="sec-label">// 01 — Community Trading Methods</div>
+    <h2>TRADING METHODS OBSERVED</h2>
+
+    <div class="method-grid">
+
+      <!-- METHOD 1: ORB -->
+      <div class="method-card">
+        <div class="method-header">
+          <div class="method-num">01</div>
+          <div>
+            <h3>Opening Range Breakout (ORB)</h3>
+            <span class="method-badge">High Frequency</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Primary users:</strong> stolpilot, carlo, L U C A S, Liam (リアム), Sosa in this beamer — the most commonly executed model in the chat</p>
+        <div class="divider"></div>
+        <h4>Step-by-Step Approach</h4>
+        <ol class="steps">
+          <li><div class="step-n">1</div> Mark the first 5-minute candle's high and low at the 9:30 AM NY open as your ORB range.</li>
+          <li><div class="step-n">2</div> Mark the midpoint (50%) of the ORB — this level is treated as a magnet and key decision zone. Members call it "ORB CE" or "midpoint."</li>
+          <li><div class="step-n">3</div> Wait for price to respect or sweep one extreme of the ORB (high or low), then look for rejection back into the range.</li>
+          <li><div class="step-n">4</div> On a retest of the ORB midpoint or low/high, look for a confirming 1m or 5m FVG forming at that level.</li>
+          <li><div class="step-n">5</div> Enter on the break + close of the confirming candle. Stop goes just beyond the ORB extreme. Target is the opposite end of the ORB, then beyond.</li>
+          <li><div class="step-n">6</div> If price inverses the FVG that was used as the entry signal (IFVG), this becomes a new bearish/bullish bias point — consider re-entry in the opposite direction.</li>
+        </ol>
+        <div class="key-note">stolpilot executes exclusively on the 1m, market orders only. He draws the ORB on the 5m and 15m — never smaller. "5 min is too small TF" — his 15m ORB is his trusted zone.</div>
+      </div>
+
+      <!-- METHOD 2: OTE -->
+      <div class="method-card">
+        <div class="method-header">
+          <div class="method-num">02</div>
+          <div>
+            <h3>Optimal Trade Entry (OTE)</h3>
+            <span class="method-badge">Intermediate</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Primary users:</strong> stolpilot, ZMG, BaNQo, MarkTooSharp — described as a "continuation model, not a reversal"</p>
+        <div class="divider"></div>
+        <h4>Step-by-Step Approach</h4>
+        <ol class="steps">
+          <li><div class="step-n">1</div> Identify the most recent significant swing high and swing low on the 15m or 1H chart.</li>
+          <li><div class="step-n">2</div> Draw a Fibonacci retracement from the swing low to swing high (for bullish) or swing high to swing low (for bearish). Include wicks.</li>
+          <li><div class="step-n">3</div> Wait for price to take external liquidity (sweep the most recent swing point) and then begin a pull-back.</li>
+          <li><div class="step-n">4</div> Watch for price to enter the OTE zone: between the 0.62–0.79 Fibonacci levels. The 0.70 level is the "sweet spot" — stolpilot watches for price to reject at 0.70 specifically.</li>
+          <li><div class="step-n">5</div> Look for a confirming PD array inside the OTE zone: a bearish/bullish FVG, Order Block, or Breaker Block.</li>
+          <li><div class="step-n">6</div> Enter at the PDA inside OTE. Stop goes just beyond the 1.0 Fibonacci level (the swing). Target is the opposite liquidity pool or the next significant DOL.</li>
+        </ol>
+        <div class="key-note">stolpilot: "OTE is a continuation model not a reversal." BaNQo took an OTE pre-market — "OTE was gonna hold up and reverse and the volatility was there." Confirmed by stolpilot: "yes. PDL taken pre market. Pull back into OTE between 8:30 and 11, OTE level aligned with a PDA then wait for a confirmation of a reversal."</div>
+      </div>
+
+      <!-- METHOD 3: LIQUIDITY SWEEP + MSS -->
+      <div class="method-card">
+        <div class="method-header">
+          <div class="method-num">03</div>
+          <div>
+            <h3>Liquidity Sweep + Market Structure Shift</h3>
+            <span class="method-badge">Core Model</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Primary users:</strong> OL2G, Tommy Shelby, ZMG, 1suf, Doozi — the foundational entry model most members use as a baseline</p>
+        <div class="divider"></div>
+        <h4>Step-by-Step Approach</h4>
+        <ol class="steps">
+          <li><div class="step-n">1</div> Identify your HTF bias (daily/4H/1H) — are we in a premium or discount? Mark the directional draw on liquidity (DOL).</li>
+          <li><div class="step-n">2</div> On the 15m or 5m, identify resting liquidity above (buy-side: equal highs, swing highs, BSL) or below (sell-side: equal lows, swing lows, SSL).</li>
+          <li><div class="step-n">3</div> Wait for price to aggressively sweep through that liquidity — a strong spike that takes the level and immediately reverses.</li>
+          <li><div class="step-n">4</div> After the sweep, watch for a Market Structure Shift (MSS): a displacement candle that closes beyond the most recent internal swing point in the opposite direction.</li>
+          <li><div class="step-n">5</div> Wait for a pullback into the FVG created by the displacement candle (the "CISD" — change in state of delivery — FVG).</li>
+          <li><div class="step-n">6</div> Enter at the 50% or OB level of the CISD FVG. Stop above/below the sweep candle's wick. Target the next external liquidity pool in the direction of the MSS.</li>
+        </ol>
+        <div class="key-note">OL2G's rule: "Before you look for entry it needs to take some sort of liquidity. Did it take liquidity?" — This is non-negotiable. No sweep = no trade.</div>
+      </div>
+
+      <!-- METHOD 4: SILVER BULLET / KILLZONE MODEL -->
+      <div class="method-card">
+        <div class="method-header">
+          <div class="method-num">04</div>
+          <div>
+            <h3>Silver Bullet / Killzone Model</h3>
+            <span class="method-badge">Time-Based</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Primary users:</strong> DannyDayTrades, Porgy, ZMG, ray, Poizo — uses ICT's specific killzone windows</p>
+        <div class="divider"></div>
+        <h4>Step-by-Step Approach</h4>
+        <ol class="steps">
+          <li><div class="step-n">1</div> Mark your Silver Bullet windows: <code>10:00–11:00 AM</code> NY time (primary) and <code>2:00–3:00 PM</code> NY time (secondary).</li>
+          <li><div class="step-n">2</div> Determine HTF bias before the window opens. Do NOT wait for the window to figure out bias — the window is only for entry.</li>
+          <li><div class="step-n">3</div> As the window opens (10:00 AM candle), wait for price to manipulate — sweep of a short-term high or low within the window.</li>
+          <li><div class="step-n">4</div> Look for a 1m SIBI (sell-side imbalance buy-side inefficiency) or BISI forming after the sweep — this is the "Silver Bullet setup."</li>
+          <li><div class="step-n">5</div> Enter at the SIBI/BISI. Stop goes above/below the manipulation wick. Target: previous liquidity pool from overnight, Asia, or London session.</li>
+          <li><div class="step-n">6</div> If the Silver Bullet fails within 15–20 minutes, re-evaluate. Members close out and wait for the 2 PM window instead.</li>
+        </ol>
+        <div class="key-note">Porgy: "I believe this is silver bullet, I started entering in this 1m SIBI that was overlapping with NWOG low." — The SIBI overlapping a key level (NWOG, PDL, PDH) is the A+++ version of this setup.</div>
+      </div>
+
+      <!-- METHOD 5: PO3 / AMD -->
+      <div class="method-card">
+        <div class="method-header">
+          <div class="method-num">05</div>
+          <div>
+            <h3>PO3 / AMD (Accumulation, Manipulation, Distribution)</h3>
+            <span class="method-badge">Macro Model</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Primary users:</strong> Wixx_♧, OL2G, ZMG, Sosa in this beamer — used to understand the narrative of the entire day or session</p>
+        <div class="divider"></div>
+        <h4>Step-by-Step Approach</h4>
+        <ol class="steps">
+          <li><div class="step-n">1</div> Identify the dealing range: the swing high and swing low for the current session or daily candle. Mark the CE (50%).</li>
+          <li><div class="step-n">2</div> Look for the Accumulation phase: price consolidating in a narrow range, building orders. This is NOT a V-shape — it's a flat-ish consolidation.</li>
+          <li><div class="step-n">3</div> The Manipulation phase: price breaks in the WRONG direction — takes out old liquidity on one side (stop run). This is the "fake" move. Wixx: OL2G taught "accumulation is before ext liq is taken."</li>
+          <li><div class="step-n">4</div> Enter AFTER the manipulation is confirmed — a strong reversal candle back through the range with an MSS or displacement.</li>
+          <li><div class="step-n">5</div> The Distribution phase is the "real" move in the opposite direction of the manipulation. Target the external liquidity on the other side.</li>
+          <li><div class="step-n">6</div> Sessions can also act as AMD — Asia = Accumulation, London = Manipulation, NY = Distribution. OL2G: "as they also can set up AMD: Asia, London, NY."</li>
+        </ol>
+        <div class="key-note">OL2G: "Consolidation and accumulation are very different models." Consolidation takes internal liquidity; accumulation takes external liquidity with the manipulation move — don't confuse them.</div>
+      </div>
+
+      <!-- METHOD 6: HTF PD ARRAY + LOW TF ENTRY (OL2G's model) -->
+      <div class="method-card">
+        <div class="method-header">
+          <div class="method-num">06</div>
+          <div>
+            <h3>HTF PD Array + Seconds-TF Entry</h3>
+            <span class="method-badge">High RR / Low WR</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Primary user:</strong> OL2G — 30–40% win rate, 20–65 RR trades. "POI, TS, COS FVG, IR" — his model in shorthand</p>
+        <div class="divider"></div>
+        <h4>Step-by-Step Approach</h4>
+        <ol class="steps">
+          <li><div class="step-n">1</div> Every weekend: mark every HTF PD Array (FVGs, OBs, Rejection Blocks) on the 15m, 1H, 4H, Daily, and Weekly charts. Map all external liquidity pools.</li>
+          <li><div class="step-n">2</div> Identify the highest-quality HTF POI: a PD Array that has (a) previous reactions at that level, (b) external liquidity nearby, and (c) falls in an OTE zone.</li>
+          <li><div class="step-n">3</div> Wait for price to reach that HTF POI. The POI must tap — do not enter early.</li>
+          <li><div class="step-n">4</div> On a seconds-level chart (30s or tick chart), watch for a Change of State of Delivery (COS) — a displacement candle + FVG in the opposite direction at the HTF POI.</li>
+          <li><div class="step-n">5</div> Enter market order inside the COS FVG. Stop goes just above/below the most recent swing. Targets are the next HTF liquidity pool.</li>
+          <li><div class="step-n">6</div> Hold the trade hours if needed — OL2G held a trade from open (9:30 AM) for 7 hours, targeting HOD to LOD for 321 points at 65RR.</li>
+        </ol>
+        <div class="key-note">OL2G: "15m PD Arrays are like gold if they have external liq close to them." His rule: a HTF PD Array with external liquidity AND previous reactions = highest probability POI. He uses market orders on a seconds chart because "the fvg may be a bag" on the minutes TF.</div>
+      </div>
+
+      <!-- METHOD 7: ORDERFLOW + ICT HYBRID -->
+      <div class="method-card">
+        <div class="method-header">
+          <div class="method-num">07</div>
+          <div>
+            <h3>ICT + Orderflow / Footprint Hybrid</h3>
+            <span class="method-badge">Advanced</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Primary users:</strong> Cyph3r, Boy Wonder, carlo — combines ICT zones with footprint/bookmap confirmation for precision entries</p>
+        <div class="divider"></div>
+        <h4>Step-by-Step Approach</h4>
+        <ol class="steps">
+          <li><div class="step-n">1</div> Mark your chart normally with ICT PD Arrays (FVGs, OBs, Breakers). These define the "where."</li>
+          <li><div class="step-n">2</div> Load a footprint chart (ATAS, Sierra Charts, or Tradovate's footprint) or Bookmap alongside your ICT chart.</li>
+          <li><div class="step-n">3</div> When price approaches an ICT POI, zoom into the footprint. Look for: absorption (large sell volume at lows not pushing lower / large buy volume at highs not pushing higher), stacked resting limit orders (visible on Bookmap as a "wall"), or delta exhaustion.</li>
+          <li><div class="step-n">4</div> The footprint tells you WHICH FVG or OB within the ICT zone will actually hold — because it shows where real orders are sitting.</li>
+          <li><div class="step-n">5</div> Enter only when footprint confirms ICT level. Stop remains ICT-based (beyond the PDA). Target ICT DOL.</li>
+          <li><div class="step-n">6</div> Also use GEX (gamma exposure) from gexbot.com — market maker options hedging creates magnets at specific levels. Cyph3r: "es 6400, nq 23250 liquidity" — these are GEX-derived magnets.</li>
+        </ol>
+        <div class="key-note">Cyph3r: "ICT attempts to predict where the orderflow will be, those tools show where it actually is. So they work well together." Carlo: "footprint is better as that can't be faked" — unlike spoofed limit orders on bookmap.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMMUNITY QUOTES ===== -->
+<section>
+  <div class="wrapper">
+    <div class="sec-label">// 02 — Wisdom from the Community</div>
+    <h2>REAL TALK FROM REAL TRADERS</h2>
+    <div class="quote-strip">
+      <div class="quote-item">
+        <p class="quote-text">"You could have a mediocre entry model and still succeed if you have a good DOL. After all this time I've understood that DOL is the most important thing."</p>
+        <p class="quote-author">— carlo</p>
+      </div>
+      <div class="quote-item">
+        <p class="quote-text">"At no time does trading rely on emotion. Regardless of strategy. It relies on specific models at specific times of day."</p>
+        <p class="quote-author">— stolpilot</p>
+      </div>
+      <div class="quote-item">
+        <p class="quote-text">"Be as cold as a surgeon when trading. Don't let emotions take over. Have a plan and FOLLOW it. Risk management is the MOST important thing along with psychology."</p>
+        <p class="quote-author">— carlo</p>
+      </div>
+      <div class="quote-item">
+        <p class="quote-text">"You will never be correct on Bias 100%. It's probabilities."</p>
+        <p class="quote-author">— stolpilot</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BIAS IDENTIFICATION ===== -->
+<section>
+  <div class="wrapper">
+    <div class="sec-label">// 03 — Bias & Direction</div>
+    <h2>HOW TO IDENTIFY DAILY BIAS</h2>
+    <p style="margin-bottom: 2rem; font-style: italic; color: var(--muted);">From NJ: "I must have seen tons of videos on finding Daily Bias. Never found clarity." — Here's how the experienced members actually do it, synthesized from the entire chat.</p>
+
+    <div class="bias-grid">
+      <div class="bias-block">
+        <h4>Step 1 — HTF Context (Weekly / Daily)</h4>
+        <ul>
+          <li>Is the market in a premium or discount zone? (Above or below 50% of the weekly range)</li>
+          <li>Where are the weekly FVGs, OBs, and Breakers that price is approaching?</li>
+          <li>What's the directional draw — are there unfilled imbalances or liquidity pools above or below?</li>
+          <li>Is there a protected high/low (has one side NOT been swept yet this week)?</li>
+          <li>Daily: Did price take the PDH or PDL pre-market? This tells you if London manipulated up or down.</li>
+        </ul>
+      </div>
+      <div class="bias-block">
+        <h4>Step 2 — Session Structure (4H / 1H)</h4>
+        <ul>
+          <li>Check: Did Asia create a clear high or low? Mark Asia High (AH) and Asia Low (AL).</li>
+          <li>London: Did London take the Asia High or Low? This is the manipulation. NY should do the opposite.</li>
+          <li>Mark London High and London Low — at NY open, whichever was NOT swept is the target.</li>
+          <li>Look at 4H structure: Is the last 4H candle bullish or bearish? Is there a 4H FVG above or below?</li>
+          <li>ZMG's rule: "Sometimes you won't really have a clear daily bias. Those days you either sit out or employ 'if price does this, I do this.'"</li>
+        </ul>
+      </div>
+      <div class="bias-block">
+        <h4>Step 3 — Intraday SMT Divergence</h4>
+        <ul>
+          <li>Compare NQ vs ES (or Gold vs Silver for XAUUSD traders). Do they make the SAME swing point, or does one fail?</li>
+          <li>If NQ makes a new low but ES does NOT → SMT divergence → bullish bias. Vice versa for bearish.</li>
+          <li>SMT is most powerful at session open (8:30–9:30) and again at 10AM.</li>
+          <li>Robin: "We got a big ass SMT" was his entry trigger for the day's directional trade.</li>
+          <li>OL2G: "SMTs a bonus" — don't rely on it alone; it confirms but doesn't replace HTF context.</li>
+        </ul>
+      </div>
+      <div class="bias-block">
+        <h4>Step 4 — Confirming at Open</h4>
+        <ul>
+          <li>Watch the 9:30 open candle — does it gap up or down? Mark the NWOG (New Week Opening Gap) and check if price runs to fill it.</li>
+          <li>At 9:30: does price immediately reject a PD Array or does it blow through? Rejection = bias confirmed.</li>
+          <li>carlo: "I think we go down initially and then up" — this is AMD awareness at open.</li>
+          <li>NJ: "I wait for MSS towards down and then go" — waits for displacement in the bias direction before entering.</li>
+          <li>Meowmeow: "I look at higher TF from Daily to about 1HR. Sometimes weekly, especially now with gold breaking past weekly levels."</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem; background: var(--surface); border: 1px solid var(--border); padding: 1.5rem;">
+      <h4 style="margin-bottom: 1rem;">Bias Filters — When to Stay Out</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.92rem;">
+        <div>
+          <strong class="highlight-red">❌ Skip the Day When:</strong>
+          <ul style="list-style: none; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.3rem; padding-left: 1rem;">
+            <li style="color: var(--muted);">— FOMC day (unpredictable expansion in either direction)</li>
+            <li style="color: var(--muted);">— Choppy, "barcode" price action with no clear range</li>
+            <li style="color: var(--muted);">— You've already hit your daily loss limit</li>
+            <li style="color: var(--muted);">— Price is between PD Arrays with no clear POI nearby</li>
+            <li style="color: var(--muted);">— High-resistance liquidity runs — "messy" price action</li>
+          </ul>
+        </div>
+        <div>
+          <strong class="highlight">✓ High-Confidence Bias Day When:</strong>
+          <ul style="list-style: none; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.3rem; padding-left: 1rem;">
+            <li style="color: var(--muted);">— London clearly swept Asia high/low with displacement</li>
+            <li style="color: var(--muted);">— SMT divergence confirmed at session open</li>
+            <li style="color: var(--muted);">— Price in a HTF premium/discount with clear DOL</li>
+            <li style="color: var(--muted);">— TGIF Friday: previous week low already swept, longs set up</li>
+            <li style="color: var(--muted);">— MMBM confirmed (Monday's range established)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== A+++ TRADE ===== -->
+<section>
+  <div class="wrapper">
+    <div class="sec-label">// 04 — Elite Setups</div>
+    <h2>THE A+++ TRADE CHECKLIST</h2>
+    <p style="margin-bottom: 2rem; font-style: italic; color: var(--muted);">From ZMG and Poizo's "Unicorn" discussion to OL2G's 65RR trade — here's exactly what makes a setup go from "okay" to "once a week, screenshot-worthy."</p>
+
+    <div class="aplus-card">
+      <h4 style="margin-bottom: 1.5rem; color: var(--accent);">ALL OF THESE MUST ALIGN — NO EXCEPTIONS</h4>
+      <div class="aplus-checklist">
+        <div class="aplus-item">
+          <div class="check">✓</div>
+          <div class="check-text">
+            <strong>HTF Confluence (15m or above)</strong>
+            A PD Array on the 15m, 1H, or 4H chart at the entry point. Not a random level — a proven area where price has reacted before.
+          </div>
+        </div>
+        <div class="aplus-item">
+          <div class="check">✓</div>
+          <div class="check-text">
+            <strong>External Liquidity Nearby</strong>
+            A pool of buy-stops or sell-stops resting just above/below the POI that has NOT been taken yet. This gives price a reason to reach your level.
+          </div>
+        </div>
+        <div class="aplus-item">
+          <div class="check">✓</div>
+          <div class="check-text">
+            <strong>Clear DOL (Draw on Liquidity)</strong>
+            You can clearly see WHERE price wants to go after the entry. A specific pool of liquidity (equal highs, old swing, weekly level) that provides the target.
+          </div>
+        </div>
+        <div class="aplus-item">
+          <div class="check">✓</div>
+          <div class="check-text">
+            <strong>Session Alignment + Time Window</strong>
+            The setup appears at 9:30–11AM, 2PM–3PM, or during a London KZ (2–5AM). Setups outside of killzones are lower probability. NJ: "I use 10AM 4H candle along with AMD."
+          </div>
+        </div>
+        <div class="aplus-item">
+          <div class="check">✓</div>
+          <div class="check-text">
+            <strong>Overlapping PD Arrays</strong>
+            Two or more PD arrays stacking at the same price: FVG + OB, Breaker + FVG ("Unicorn"), NWOG + 15m FVG, OTE zone + FVG. Poizo: "A Breaker paired with a FVG is considered a Unicorn model."
+          </div>
+        </div>
+        <div class="aplus-item">
+          <div class="check">✓</div>
+          <div class="check-text">
+            <strong>SMT Divergence at Entry</strong>
+            At the exact POI, NQ and ES (or Gold and Silver) diverge — one makes a new extreme and the other doesn't. This is the market maker's fingerprint. Not required, but makes it A+++.
+          </div>
+        </div>
+        <div class="aplus-item">
+          <div class="check">✓</div>
+          <div class="check-text">
+            <strong>Previous Reaction at the Level</strong>
+            Price has ALREADY reacted at this exact level before, bouncing cleanly. OL2G's rule: "if a POI aka HTF PD Array has EXL and previous reactions that respect the base or CE, it becomes a very high POI for reversals."
+          </div>
+        </div>
+        <div class="aplus-item">
+          <div class="check">✓</div>
+          <div class="check-text">
+            <strong>Minimum 2:1 RR (ideally 3:1+)</strong>
+            The distance to your DOL must be at least 2× your stop loss distance. ray: "If the RR is less than 2 I won't even enter the trade, the reward isn't worth the risk."
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 2rem; padding: 1.2rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(0,229,160,0.15);">
+        <h4 style="margin-bottom: 0.6rem;">Bonus Confirmations That Elevate to A+++</h4>
+        <p style="font-size: 0.92rem; color: var(--muted);">
+          <span class="highlight">→ Footprint confirmation:</span> Absorption visible at the POI on the footprint chart (large volume with no price movement)<br>
+          <span class="highlight">→ GEX magnet alignment:</span> GEX levels from options market makers at or near your target<br>
+          <span class="highlight">→ 9/21 EMA confluence:</span> "When 15m FVGs line up with the 9 and/or 21 MA they go CRAZY" — Liam<br>
+          <span class="highlight">→ Volume Profile POC:</span> Entry at or near the Point of Control (POC) from the previous session's volume profile<br>
+          <span class="highlight">→ TGIF model:</span> Friday setup — previous week's low is swept, all Friday's early lows are swept, OTE is aligned = highest probability long of the week
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROFITABILITY CHEATSHEET ===== -->
+<section>
+  <div class="wrapper">
+    <div class="sec-label">// 05 — The Profitable Edge</div>
+    <h2>PROFITABILITY CHEATSHEET</h2>
+
+    <div class="cheat-grid">
+
+      <div class="cheat-block">
+        <div class="cheat-title">Risk Management Rules</div>
+        <ul class="cheat-list gold">
+          <li><div class="dot">→</div><span>Never risk more than 0.5–1% per trade on prop accounts (ZMG: "$500 MAX on a 50k")</span></li>
+          <li><div class="dot">→</div><span>Set a daily loss limit BEFORE you start — and respect it absolutely (stolpilot: auto-lockout at $1,500 loss)</span></li>
+          <li><div class="dot">→</div><span>Maximum 2 trades per session — after 2 losses, close the platform (OL2G's hard rule)</span></li>
+          <li><div class="dot">→</div><span>Do NOT move your stop loss further away. Move it to breakeven once in profit, then trail.</span></li>
+          <li><div class="dot">→</div><span>Scale down in volatile/choppy conditions — smaller size, wider SL, same dollar risk</span></li>
+          <li><div class="dot">→</div><span>Never revenge trade. Use Tradovate's account lock feature immediately after a loss</span></li>
+          <li><div class="dot">→</div><span>Barami's rule: If a setup fails within 15–20 mins, your bias is probably wrong — sit out</span></li>
+        </ul>
+      </div>
+
+      <div class="cheat-block">
+        <div class="cheat-title">Session Windows to Trade</div>
+        <ul class="cheat-list">
+          <li><div class="dot">→</div><span><strong>9:30–11:00 AM NY</strong> — Primary window. ORB, OTE, Silver Bullet all focus here. Best PA of the day.</span></li>
+          <li><div class="dot">→</div><span><strong>10:00–11:00 AM NY</strong> — The "Optimal Trade Entry" window (ICT OTE session). stolpilot: "OTE is a continuation model."</span></li>
+          <li><div class="dot">→</div><span><strong>2:00–3:00 PM NY</strong> — Afternoon Silver Bullet window. Good for TGIF setups on Fridays.</span></li>
+          <li><div class="dot">→</div><span><strong>Lunch (11AM–1PM)</strong> — "Hit or miss." Most experienced members sit out. 1suf: "Trading lunch might be the new strat" — joke, but low probability.</span></li>
+          <li><div class="dot">→</div><span><strong>London 2:00–5:00 AM EST</strong> — B Hussle found success here. Pre-NY manipulation = trade the opposite direction at NY open.</span></li>
+          <li><div class="dot">→</div><span><strong>Friday 2PM (TGIF)</strong> — High-probability long if week's low was swept. stolpilot: "Last 2 Fridays have been movers."</span></li>
+        </ul>
+      </div>
+
+      <div class="cheat-block">
+        <div class="cheat-title">Psychology & Mindset Rules</div>
+        <ul class="cheat-list warn">
+          <li><div class="dot">!</div><span>The moment you revenge trade, you've lost — lock the account and walk away. No exceptions.</span></li>
+          <li><div class="dot">!</div><span>"FOMO is why I lock my account." — B Hussle. If you missed the move, you missed it. There's always tomorrow.</span></li>
+          <li><div class="dot">!</div><span>D.D's wisdom: "Sometimes your good mental health is not tradable — meditation, shift your mind." Bad days = no trades.</span></li>
+          <li><div class="dot">!</div><span>"Practice how you play." — stolpilot. Don't backtest with unrealistic size — it creates anxiety when going live with real (smaller) size.</span></li>
+          <li><div class="dot">!</div><span>Sosa: "I need to learn not to trade when I'm not in the right mindset." Mental state is a filter — if you're off, you're off.</span></li>
+          <li><div class="dot">!</div><span>stolpilot: "Emotions are the demon that must be tamed. I used to be so fucking emotional that I would break shit."</span></li>
+          <li><div class="dot">!</div><span>"The habits you develop in your eval carry over to your funded." — B Hussle. Trade your eval like it's a live account.</span></li>
+        </ul>
+      </div>
+
+      <div class="cheat-block">
+        <div class="cheat-title">Chart Setup & Execution</div>
+        <ul class="cheat-list blue">
+          <li><div class="dot">→</div><span>Use continuous contracts (NQ1!) for charting, but execute on the front-month (NQM6). They show different price levels.</span></li>
+          <li><div class="dot">→</div><span>Mark HTF levels EVERY WEEKEND — 15m, 1H, 4H, Daily, Weekly PD Arrays + liquidity pools. OL2G does this every Saturday.</span></li>
+          <li><div class="dot">→</div><span>Use market orders for entries on futures (not limit orders) — price moves too fast. Barami's lesson: limit orders caused slippage and missed entries repeatedly.</span></li>
+          <li><div class="dot">→</div><span>For forex: use limit orders + enable "Ask line" on charts to see true fill price including spread.</span></li>
+          <li><div class="dot">→</div><span>Always mark: Asia H/L, London H/L, PDH/PDL, NWOG, Weekly Open, Monthly Open before every trading day.</span></li>
+          <li><div class="dot">→</div><span>Indicators: ICT Kill Zones (sessions), MSS Liquidity indicator (fadi), Market Structure BOS/CHOCH (Nephew Sam) — these are the community-recommended indicators on TradingView.</span></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Profitability levels table -->
+    <div style="margin-top: 2rem; background: var(--surface); border: 1px solid var(--border);">
+      <table class="profit-table">
+        <thead>
+          <tr>
+            <th>Stage</th>
+            <th>What You're Working On</th>
+            <th>How to Level Up</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Beginner</td>
+            <td>Still learning PD Arrays, can't read structure consistently. Losses feel random. No clear DOL before entering.</td>
+            <td>Master ONE concept at a time. Start with FVG identification — mark every FVG on a 15m chart daily for 30 days. Don't trade until you can read structure automatically.</td>
+          </tr>
+          <tr>
+            <td>Intermediate</td>
+            <td>Knows the tools, finds setups, but struggles to identify bias. Takes trades in the wrong direction. Win rate below 40%.</td>
+            <td>Focus on DOL before entry. Before every trade: "Where is price going?" If you can't answer, no trade. Study London manipulation → NY continuation pattern.</td>
+          </tr>
+          <tr>
+            <td>Consistent</td>
+            <td>Passes evals but struggles to stay profitable on funded. Follows rules in sim, breaks them live. Still revenge trades occasionally.</td>
+            <td>Implement hard account lock. Max 2 trades per day — track this in a journal. Reduce size to 1 micro per $10k account equivalent. Rebuild confidence with base hits.</td>
+          </tr>
+          <tr>
+            <td>Profitable</td>
+            <td>Consistent payouts. Has a defined model. Manages trades well. Occasionally overtrades in volatile conditions.</td>
+            <td>Scale up slowly. OL2G's path: 1 mini → 55k → 5 minis → 125k → 10 minis. Apply for multiple prop accounts and rotate. stolpilot: "I have my TS to auto-lock and lockout at $1,500."</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INSTRUMENTS ===== -->
+<section>
+  <div class="wrapper">
+    <div class="sec-label">// 06 — Instruments</div>
+    <h2>WHAT THIS COMMUNITY TRADES</h2>
+
+    <div style="border: 1px solid var(--border);">
+      <div class="session-row">
+        <div class="session-name">NQ / MNQ</div>
+        <div class="session-detail"><strong>Nasdaq 100 Futures</strong> — The primary instrument. Most discussions, setups, and PnL posts are NQ. carlo: "We trade NQ, ES and Gold here for the most part." Higher volatility than ES, responds well to ICT concepts. MNQ (micro) for smaller accounts or size scaling.</div>
+      </div>
+      <div class="session-row">
+        <div class="session-name">ES / MES</div>
+        <div class="session-detail"><strong>S&amp;P 500 Futures</strong> — Used alongside NQ for SMT divergence analysis. "ES took the high but NQ didn't" = SMT = bearish bias. Lower volatility, easier fills, better for learning entries before moving to NQ.</div>
+      </div>
+      <div class="session-row">
+        <div class="session-name">XAUUSD / GC</div>
+        <div class="session-detail"><strong>Gold (Spot &amp; Futures)</strong> — Second most popular. Reacts strongly to geopolitical news (Trump/Iran). Meowmeow trades XAUUSD via forex brokers; NJ and others trade GC futures. SMT: compare Gold with Silver (XAGUSD) or Dollar Index.</div>
+      </div>
+      <div class="session-row">
+        <div class="session-name">EURUSD / GBPUSD</div>
+        <div class="session-detail"><strong>Major Forex Pairs</strong> — Barami, Tommy Shelby, DannyDayTrades trade forex primarily. "FTMO, FundedNext, FundingPips" are the preferred prop firms for forex. Uses same ICT concepts — London KZ especially important for forex pairs.</div>
+      </div>
+      <div class="session-row">
+        <div class="session-name">BTC / ETH</div>
+        <div class="session-detail"><strong>Crypto (Weekend Trading)</strong> — KLUV and Liam trade crypto on weekends when futures markets are closed. ICT concepts apply but with nuances — no killzones, higher noise. "CME close price → 1% above and below are amazing for weekends." Options expiry affects BTC significantly.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== REAL TRADE EXAMPLES (from PDF) ===== -->
+<section>
+  <div class="wrapper">
+    <div class="sec-label">// 07 — Live Trade Examples</div>
+    <h2>REAL TRADES, REAL NOTES</h2>
+    <p style="margin-bottom: 2rem; font-style: italic; color: var(--muted);">These are actual annotated trades shared by community members — verbatim reasoning, mistakes and all. Study the thought process, not just the outcome.</p>
+
+    <div class="method-grid">
+
+      <div class="method-card" style="border-left-color: #00e5a0;">
+        <div class="method-header">
+          <div class="method-num">T1</div>
+          <div>
+            <h3>1m FVG + 5m OB Confluence Long</h3>
+            <span class="method-badge" style="background:rgba(0,229,160,0.1);color:var(--accent);border-color:rgba(0,229,160,0.2);">NQ Futures</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Trader note:</strong> "1 min FVG with a 5 min OB in the same spot. She made it pretty clear on the 11:12 and the 11:16 candle rejections it was going to hold so I figured if it hit CE of the FVG I'd enter."</p>
+        <div class="divider"></div>
+        <h4>What Made This Setup Valid</h4>
+        <ol class="steps">
+          <li><div class="step-n">1</div> Two PD Arrays stacked at the exact same price: a 1m FVG overlapping a 5m Order Block — multi-timeframe confluence at one level.</li>
+          <li><div class="step-n">2</div> Price gave TWO rejection candles (11:12 and 11:16) before the entry — the market showed its hand. Each rejection was confirmation the zone was holding.</li>
+          <li><div class="step-n">3</div> Entry trigger: waited for price to tap the CE (50%) of the 1m FVG specifically, not the full FVG low. Tighter entry = smaller SL = better RR.</li>
+          <li><div class="step-n">4</div> Visible levels on chart: Asia High, London BSL, Midnight Open — these define the DOL above for targets.</li>
+        </ol>
+        <div class="key-note"><strong>Key lesson:</strong> Two rejections before entry = confirmation, not FOMO. If the zone is showing you it holds, wait for the CE tap. Don't enter on the first touch.</div>
+      </div>
+
+      <div class="method-card" style="border-left-color: #e5a000;">
+        <div class="method-header">
+          <div class="method-num">T2</div>
+          <div>
+            <h3>ORB Midline Break Entry</h3>
+            <span class="method-badge" style="background:rgba(229,160,0,0.1);color:var(--accent2);border-color:rgba(229,160,0,0.2);">NQ Futures · stolpilot</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Trader note:</strong> "I waited for the ORB break. I just entered when it broke the midline."</p>
+        <div class="divider"></div>
+        <h4>What Made This Setup Valid</h4>
+        <ol class="steps" style="--step-color: var(--accent2);">
+          <li><div class="step-n" style="color:var(--accent2);background:rgba(229,160,0,0.08);border-color:rgba(229,160,0,0.15);">1</div> Price had swept the ORB low (taking sell-side liquidity below the opening range) before reversing — the classic "double-sided ORB" or DBL break setup.</li>
+          <li><div class="step-n" style="color:var(--accent2);background:rgba(229,160,0,0.08);border-color:rgba(229,160,0,0.15);">2</div> After the sweep, price aggressively reclaimed the ORB and traded through the midpoint. The midline break is the entry signal — not the first break of the ORB high.</li>
+          <li><div class="step-n" style="color:var(--accent2);background:rgba(229,160,0,0.08);border-color:rgba(229,160,0,0.15);">3</div> Volume profile visible on chart (right side histogram) — notice the low-volume nodes above supporting the move.</li>
+        </ol>
+        <div class="key-note"><strong>ZMG's note on DBL ORB:</strong> "See how it made the sharp move down, broke the low then aggressively traded to the upside. This happens a lot with the ORB. Entry just after the FVG is where I took my trade." The stats on ORB favor the double-break direction.</div>
+      </div>
+
+      <div class="method-card" style="border-left-color: #4090e5;">
+        <div class="method-header">
+          <div class="method-num">T3</div>
+          <div>
+            <h3>IFVG Entry + 4H BISI Sweep — Beautiful ORB Play</h3>
+            <span class="method-badge" style="background:rgba(64,144,229,0.1);color:var(--accent4);border-color:rgba(64,144,229,0.2);">NQ Micro · TradingView</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Trader note:</strong> "IFVG entry plus the sweep of all the lows in the 4 hour BISI. *beautiful ORB play — breakout didn't hold, but range to range is working beautifully."</p>
+        <div class="divider"></div>
+        <h4>What Made This Setup Valid</h4>
+        <ol class="steps" style="--step-color: var(--accent4);">
+          <li><div class="step-n" style="color:var(--accent4);background:rgba(64,144,229,0.08);border-color:rgba(64,144,229,0.15);">1</div> Price swept ALL the lows resting inside the 4H BISI (Buy-Side Imbalance, Sell-Side Inefficiency) — a massive liquidity purge. This is the HTF confirmation that the sweep is complete.</li>
+          <li><div class="step-n" style="color:var(--accent4);background:rgba(64,144,229,0.08);border-color:rgba(64,144,229,0.15);">2</div> The ORB breakout to the upside initially failed — but the trader adapted: switched from "breakout" model to "range to range" model, targeting the other extreme of the ORB.</li>
+          <li><div class="step-n" style="color:var(--accent4);background:rgba(64,144,229,0.08);border-color:rgba(64,144,229,0.15);">3</div> Entry was on the IFVG (inverted FVG) — the FVG created by the sweep candle, now acting as support on retest.</li>
+        </ol>
+        <div class="key-note"><strong>Key lesson:</strong> When the breakout fails, switch to range-to-range. The ORB becomes a container — trade from one extreme to the other. The IFVG from the sweep candle is your entry vehicle.</div>
+      </div>
+
+      <div class="method-card" style="border-left-color: #e54040;">
+        <div class="method-header">
+          <div class="method-num">T4</div>
+          <div>
+            <h3>Liquidity Purge + MSS Short — 2:50–3:10 Macro</h3>
+            <span class="method-badge" style="background:rgba(229,64,64,0.1);color:var(--accent3);border-color:rgba(229,64,64,0.2);">MNQ · PM Session</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Trader note:</strong> "I'm guessing it was a liquidity purge and revert with MSS entering on the 2:50–3:10 macro to EQL at 799. Yes fucking beautiful."</p>
+        <div class="divider"></div>
+        <h4>What Made This Setup Valid</h4>
+        <ol class="steps" style="--step-color: var(--accent3);">
+          <li><div class="step-n" style="color:var(--accent3);background:rgba(229,64,64,0.08);border-color:rgba(229,64,64,0.15);">1</div> Session: PM session (2:00–4:00 PM), specifically the 2:50–3:10 macro window — an ICT killzone within the afternoon Silver Bullet window. Time alignment is the first filter.</li>
+          <li><div class="step-n" style="color:var(--accent3);background:rgba(229,64,64,0.08);border-color:rgba(229,64,64,0.15);">2</div> Price showed a "liquidity purge" — a violent sweep of buy-side stops (buyside liquidity) at the 1H SIBI level before aggressively reversing. The 1H SIBI label is visible on chart.</li>
+          <li><div class="step-n" style="color:var(--accent3);background:rgba(229,64,64,0.08);border-color:rgba(229,64,64,0.15);">3</div> After the sweep, an MSS (Market Structure Shift) formed — the first candle that displaced back below the prior swing. This is the entry trigger.</li>
+          <li><div class="step-n" style="color:var(--accent3);background:rgba(229,64,64,0.08);border-color:rgba(229,64,64,0.15);">4</div> Target: Equal Lows (EQL) at 799 — resting sell-side liquidity that is the logical DOL once BSL is swept.</li>
+        </ol>
+        <div class="key-note"><strong>Key lesson:</strong> Buyside liquidity swept into a 1H SIBI + MSS inside a macro window = textbook short. The "Old ORB Low" visible on chart acted as additional draw. Notice the chart is on MNQ 1m — small size, sniper entry.</div>
+      </div>
+
+      <div class="method-card" style="border-left-color: #b04aff;">
+        <div class="method-header">
+          <div class="method-num">T5</div>
+          <div>
+            <h3>1H SIBI Short — Buyside Swept, RELs as Target</h3>
+            <span class="method-badge" style="background:rgba(176,74,255,0.1);color:#b04aff;border-color:rgba(176,74,255,0.2);">NQ · Final Hour Macro</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Trader note:</strong> "Buyside swept 1h SIBI resting RELs below, final hour macro SIBI entry. Old unfilled ORG as draw. MAs as confirmation, entry using ICT and ORB."</p>
+        <div class="divider"></div>
+        <h4>What Made This Setup Valid</h4>
+        <ol class="steps" style="--step-color: #b04aff;">
+          <li><div class="step-n" style="color:#b04aff;background:rgba(176,74,255,0.08);border-color:rgba(176,74,255,0.15);">1</div> The HTF context: buyside liquidity (London BSL, Asia High, PDH all visible on chart) was swept — the manipulation phase is complete.</li>
+          <li><div class="step-n" style="color:#b04aff;background:rgba(176,74,255,0.08);border-color:rgba(176,74,255,0.15);">2</div> Entry zone: 1H SIBI — a sell-side imbalance on the 1H chart, acting as a premium zone for shorts after BSL is swept.</li>
+          <li><div class="step-n" style="color:#b04aff;background:rgba(176,74,255,0.08);border-color:rgba(176,74,255,0.15);">3</div> DOL: "resting RELs below" — relative equal lows, sell-side liquidity resting below that price needs to reach. Old unfilled ORG (Opening Range Gap) adds to the draw below.</li>
+          <li><div class="step-n" style="color:#b04aff;background:rgba(176,74,255,0.08);border-color:rgba(176,74,255,0.15);">4</div> MAs as confirmation: price broke back below moving averages (visible on chart) after the sweep — structural bearishness confirmed.</li>
+        </ol>
+        <div class="key-note"><strong>Key lesson:</strong> EQL at Asia SSL (25,201) + PDL (25,058) = clear layered DOL below. When BSL above is swept AND unfilled ORG exists below, you have a premium short with a directional draw. "Final hour macro" = 3–4PM killzone alignment.</div>
+      </div>
+
+      <div class="method-card" style="border-left-color: #ff6b35;">
+        <div class="method-header">
+          <div class="method-num">T6</div>
+          <div>
+            <h3>OTE at Open → $23K — "1 Trade, 1 and Done"</h3>
+            <span class="method-badge" style="background:rgba(255,107,53,0.1);color:#ff6b35;border-color:rgba(255,107,53,0.2);">NQ · stolpilot · 7.5 contracts</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>Trader note:</strong> "I took an OTE right at the open that I pulled in $23K on and then an ORB breakout that I lost $500 on. That's it."</p>
+        <div class="divider"></div>
+        <h4>What Made This Setup Valid</h4>
+        <ol class="steps" style="--step-color: #ff6b35;">
+          <li><div class="step-n" style="color:#ff6b35;background:rgba(255,107,53,0.08);border-color:rgba(255,107,53,0.15);">1</div> Pre-market: price dropped strongly overnight (London session), then began retracing INTO the OTE zone of the entire overnight drop — a classic OTE on the overnight range.</li>
+          <li><div class="step-n" style="color:#ff6b35;background:rgba(255,107,53,0.08);border-color:rgba(255,107,53,0.15);">2</div> The OTE zone aligned with a key FVG from pre-market — the confirmation PDA inside the OTE zone. stolpilot: "OTE level aligned with a PDA then wait for a confirmation of a reversal."</li>
+          <li><div class="step-n" style="color:#ff6b35;background:rgba(255,107,53,0.08);border-color:rgba(255,107,53,0.15);">3</div> Chart shows 7.5 contracts at 25,260 — this is a funded account trade (Lucid/Topstep), managed to his $1,500 auto-lockout rule. The $23K came from a massive leg down after entry was confirmed.</li>
+          <li><div class="step-n" style="color:#ff6b35;background:rgba(255,107,53,0.08);border-color:rgba(255,107,53,0.15);">4</div> Second trade (ORB breakout) lost $500 — stolpilot accepted the loss and stopped. Daily target hit, account locked. "1 and done" rule executed perfectly.</li>
+        </ol>
+        <div class="key-note"><strong>The discipline lesson:</strong> He made $23K then deliberately lost $500 and stopped. Most traders would try to "make more." stolpilot's psychology: "ok its just too erratic. im going to be happy with my 1 trade and call it a day." That decision likely saved the account from a much worse loss in the choppy afternoon.</div>
+      </div>
+
+      <div class="method-card" style="border-left-color: #00d4ff;">
+        <div class="method-header">
+          <div class="method-num">T7</div>
+          <div>
+            <h3>Silver Bullet — 10AM FVG Inversion + Major Liq Sweep</h3>
+            <span class="method-badge" style="background:rgba(0,212,255,0.1);color:#00d4ff;border-color:rgba(0,212,255,0.2);">NQ · stolpilot · Annotated Chart</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>stolpilot:</strong> "SB timings — 10–11am, 2–3pm, 3–4am. You're entering off of an inversion of the FVG. SB is the first FVG between 10 and 11am for AM session, 2–3pm session, and 3–4am London session that is in the direction of your bias."</p>
+        <div class="divider"></div>
+        <h4>SB Entry Rules — Direct from stolpilot</h4>
+        <ol class="steps" style="--step-color: #00d4ff;">
+          <li><div class="step-n" style="color:#00d4ff;background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.15);">1</div> Window: 10:00–11:00 AM NY. The Silver Bullet is time-specific — only the FIRST FVG formed within that window counts.</li>
+          <li><div class="step-n" style="color:#00d4ff;background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.15);">2</div> Direction: the FVG must be IN THE DIRECTION OF YOUR BIAS. If your bias is bearish, you want the first bearish FVG in the window. Don't trade against your HTF bias with SB.</li>
+          <li><div class="step-n" style="color:#00d4ff;background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.15);">3</div> Entry: you enter on the INVERSION (retest) of that FVG — not on its creation. Price creates the FVG, moves away, then comes back to fill it. Enter when it re-enters the FVG zone.</li>
+          <li><div class="step-n" style="color:#00d4ff;background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.15);">4</div> Minimum room: "meant to be a short trade with at least 10–12 handles of room to the next swing high." If the DOL is only 5 points away, skip it — not enough room.</li>
+          <li><div class="step-n" style="color:#00d4ff;background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.15);">5</div> Chart shows: "FVG created on 10:05min" → "entry in FVG" → "first target swing high" — and "major liq swept London SSL" as the catalyst that preceded the bullish SB.</li>
+        </ol>
+        <div class="key-note"><strong>From the annotated chart:</strong> Price swept London SSL (sell-side liquidity) before the 10AM window opened → this is the manipulation. Then the 10AM SB FVG formed bullish → entry on inversion → target: first swing high. The sweep BEFORE the window opens is the bias confirmation.</div>
+      </div>
+
+      <div class="method-card" style="border-left-color: var(--accent);">
+        <div class="method-header">
+          <div class="method-num">T8</div>
+          <div>
+            <h3>OTE + OB + 1H Pullback — "191 Point Trade"</h3>
+            <span class="method-badge">NQ · stolpilot</span>
+          </div>
+        </div>
+        <p class="who-uses"><strong>stolpilot:</strong> "Pullback into the 1hr OTE, waited for ORB to break and entered on the break of the closed candle inside the range. 191 point trade."</p>
+        <div class="divider"></div>
+        <h4>The Exact Entry Sequence — stolpilot's Words</h4>
+        <ol class="steps">
+          <li><div class="step-n">1</div> Context: Price was in the 1H OTE zone (0.62–0.79 of the 1H leg). This is the macro framework — price is in the correct retracement zone.</li>
+          <li><div class="step-n">2</div> The 5m ORB was established at open. Price initially tried to push above it (testing the .70 Fibonacci) and FAILED — rejection at the OTE .70 level.</li>
+          <li><div class="step-n">3</div> stolpilot: "It broke back inside the 5 min candle high after rejecting the OTE .70 level. I didn't want to enter short until we failed the retest of that 5 min ORB level."</li>
+          <li><div class="step-n">4</div> Entry: "I entered on the 9:43 candle as it broke the low of the 9:42 candle." — The break of the PREVIOUS candle's low after the failed ORB retest. Market order on the 1m.</li>
+          <li><div class="step-n">5</div> The FVG created on the 9:44 candle provided additional entry for others: "I would have entered in the 9:44 FVG as it retested the 15 min midrange."</li>
+        </ol>
+        <div class="key-note"><strong>stolpilot on ORB entry precision:</strong> "Ah the ORB? That's a sniper entry so you enter off the FVG. When no FVG, the break of the retest candle or closed candle." And: "People do it different ways. I wait for a retest to make sure it holds."</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMMUNITY MODELS (from PDF) ===== -->
+<section>
+  <div class="wrapper">
+    <div class="sec-label">// 08 — Codified Entry Models</div>
+    <h2>THE 5 COMMUNITY ENTRY MODELS</h2>
+    <p style="margin-bottom: 2rem; font-style: italic; color: var(--muted);">Directly from the PDF — community members distilled their approaches into numbered models. These are repeatable, rule-based templates.</p>
+
+    <div style="border: 1px solid var(--border); background: var(--surface);">
+
+      <div style="padding: 1.8rem; border-bottom: 1px solid var(--border);">
+        <h4 style="margin-bottom: 0.8rem; color: var(--accent);">Model #1 — Liquidity Sweep + HTF FVG (Open Reversal)</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-size: 0.93rem;">
+          <div>
+            <ol style="list-style: decimal; padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+              <li>Sweep of high/low from premarket</li>
+              <li>Tap into HTF FVG (15m preferred)</li>
+              <li>Creates SMT with the sweep (bonus confirmation)</li>
+              <li>Target IRL (Internal Range Liquidity) or ERL (External Range Liquidity)</li>
+            </ol>
+          </div>
+          <div style="color: var(--muted); font-size: 0.88rem; font-style: italic;">
+            Best used at 9:30 open when London has created a manipulation leg. The premarket sweep sets the direction. The 15m FVG is the entry. SMT at the sweep point is the A+++ version. Target is the nearest opposing liquidity pool.
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 1.8rem; border-bottom: 1px solid var(--border);">
+        <h4 style="margin-bottom: 0.8rem; color: var(--accent2);">Model #2 — OTE Continuation (The Pullback)</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-size: 0.93rem;">
+          <div>
+            <ol style="list-style: decimal; padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+              <li>Price makes a significant move (takes PDH, PDL, or major liquidity)</li>
+              <li>OTE Range drawn on 15m or 1H leg</li>
+              <li>Tap into HTF FVG inside the OTE zone (5m or 15m)</li>
+              <li>Create SMT divergence at the low/high</li>
+              <li>Target IRL or ERL in direction of the move</li>
+            </ol>
+          </div>
+          <div style="color: var(--muted); font-size: 0.88rem; font-style: italic;">
+            stolpilot: "I only draw OTE on 15 min and 1 hr." ZMG: "With OTE like everything else, HTF takes precedence. OTE plus ORB that should be a great recipe." Use during NY session 8:30–11AM window for highest probability.
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 1.8rem; border-bottom: 1px solid var(--border);">
+        <h4 style="margin-bottom: 0.8rem; color: var(--accent4);">Model #3 — Open Reversal (Sweep → MSS)</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-size: 0.93rem;">
+          <div>
+            <ol style="list-style: decimal; padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+              <li>Sweep of high/low from premarket (manipulation)</li>
+              <li>Tap into HTF FVG (15m preferred) at the sweep point</li>
+              <li>Creates SMT with the sweep</li>
+              <li>MSS (Market Structure Shift) confirms reversal</li>
+              <li>Target IRL or ERL in opposite direction</li>
+            </ol>
+          </div>
+          <div style="color: var(--muted); font-size: 0.88rem; font-style: italic;">
+            This is the "failed open" setup. London pushed price one way, NY reverses it. The sweep is the manipulation, the MSS is the distribution signal. "Nothing more bearish than a failed bullish move" — a failed bull is immediate bearish signal.
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 1.8rem; border-bottom: 1px solid var(--border);">
+        <h4 style="margin-bottom: 0.8rem; color: #b04aff;">Model #4 — BOS Continuation</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-size: 0.93rem;">
+          <div>
+            <ol style="list-style: decimal; padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+              <li>Displacement leg creates a FVG (strong momentum candle)</li>
+              <li>BOS — break of short-term high/low confirms direction</li>
+              <li>Pullback into the FVG for entry</li>
+              <li>Target opposing liquidity pool</li>
+            </ol>
+          </div>
+          <div style="color: var(--muted); font-size: 0.88rem; font-style: italic;">
+            Pure ICT price delivery. Price displaces → creates FVG → retraces to fill it → continues. This is the engine of all trending moves. The FVG entry is cleaner than chasing breakouts. Use the 1m FVG inside a 5m BOS for precision.
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 1.8rem;">
+        <h4 style="margin-bottom: 0.8rem; color: #ff6b35;">Model #5 — Three Entry Types by Market Condition</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; font-size: 0.9rem;">
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 1rem;">
+            <div style="font-family: 'DM Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 0.5rem;">Type 1 — FVG + Confluences</div>
+            Best entry. Multiple PD Arrays stacking at the same level. Smallest SL possible. Enter at CE of FVG with stop below the FVG low. Used when market is providing clear retracements.
+          </div>
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 1rem;">
+            <div style="font-family: 'DM Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent2); margin-bottom: 0.5rem;">Type 2 — Break & Retest</div>
+            Standard entry. Wait for structure break then enter on the retest of the broken level. Used when London doesn't always provide a pullback — "sometimes you gotta ride the wave." Slightly larger SL than Type 1.
+          </div>
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 1rem;">
+            <div style="font-family: 'DM Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent4); margin-bottom: 0.5rem;">Type 3 — Momentum</div>
+            Aggressive entry. Market is running and no clean retracement. Enter on momentum in the direction of the higher-timeframe move. Each type has its own risk size — momentum entries get smaller size.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== BIAS RULES FROM PDF ===== -->
+<section>
+  <div class="wrapper">
+    <div class="sec-label">// 09 — Bias Deep Dive</div>
+    <h2>ADVANCED BIAS DETERMINATION</h2>
+    <p style="margin-bottom: 2rem; font-style: italic; color: var(--muted);">From the PDF's annotated discussions — the nuanced rules experienced traders use to determine direction when it's NOT obvious.</p>
+
+    <div class="bias-grid" style="margin-bottom: 1.5rem;">
+      <div class="bias-block" style="border-left: 3px solid var(--accent);">
+        <h4>The POI Holding Test</h4>
+        <p style="font-size: 0.92rem; margin-bottom: 0.8rem;">From the PDF: "When you're determining your bias the most important thing to ask yourself is: <em>Which side's POIs are holding?</em>"</p>
+        <ul>
+          <li>If price is dumping strongly OUT of a 1H bearish FVG and rejecting it → bearish bias confirmed</li>
+          <li>If bullish OBs are getting "ran through and reversed" → still bearish, don't flip</li>
+          <li>"When you're expecting a reversal you want to see a slow drop before a quick move up. When price is dumping hard, expect bullish POIs to just get ran through"</li>
+          <li>Continuation is more likely than reversal — always default to playing continuation</li>
+        </ul>
+      </div>
+      <div class="bias-block" style="border-left: 3px solid var(--accent2);">
+        <h4>The Failed Move Signal</h4>
+        <p style="font-size: 0.92rem; margin-bottom: 0.8rem;">"Nothing more bearish than a failed bullish move." — This is one of the most reliable bias signals in the community.</p>
+        <ul>
+          <li>Price attempts to take out PDH or session high → fails → immediate bearish bias</li>
+          <li>OB invalidated → it becomes a Breaker Block → now it's a SHORT entry, not a long</li>
+          <li>"Bullish to bearish shift: failed bull is bearish. Retracement back into the Breaker Block → OTE entry"</li>
+          <li>ZMG: "We were sitting in OTE on the 1H. We failed to take out AM highs. We created a -BB and MSS. Lunch loves a reversal. And there were clear DOL."</li>
+        </ul>
+      </div>
+      <div class="bias-block" style="border-left: 3px solid var(--accent4);">
+        <h4>Using EMAs for Bias Context</h4>
+        <p style="font-size: 0.92rem; margin-bottom: 0.8rem;">From the PDF: EMAs as an additional filter — not the primary tool, but a useful bias confirmer.</p>
+        <ul>
+          <li>Bullish filter: price above 9 EMA, which is above 21 EMA, which is above 50 EMA — and all 3 above VWAP</li>
+          <li>"If the 9 and 21 EMAs are crossing each other, price is choppy" — sit out during crosses</li>
+          <li>Liam: "When 15m FVGs line up with the 9 and/or 21 MA they go CRAZY" — use MA confluence for A+++ entries</li>
+          <li>Don't use EMAs alone — they're a confirmation layer on top of liquidity and PD Arrays</li>
+        </ul>
+      </div>
+      <div class="bias-block" style="border-left: 3px solid #b04aff;">
+        <h4>OTE Zone as a Bias Filter</h4>
+        <p style="font-size: 0.92rem; margin-bottom: 0.8rem;">stolpilot's OTE bias rule — often the most precise bias filter of all:</p>
+        <ul>
+          <li>"I use OTE when PDH or PDL has been taken" — the OTE only applies AFTER the prior day's extreme is swept</li>
+          <li>Price needs to take STH (short-term high) first, then create ITH (internal term high), then after breaking ITH — look for OTE</li>
+          <li>OTE zone = 0.62–0.79 Fibonacci of the previous leg. The 0.70 is the most respected level</li>
+          <li>If price is in OTE AND failing to take out HTF levels → strong reversal bias. "OTE zone here, previous day high or PDL has not been taken, have to see how it reacts."</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TGIF Full Breakdown -->
+    <div style="background: var(--surface); border: 1px solid var(--border); padding: 2rem; margin-top: 1.5rem;">
+      <h3 style="margin-bottom: 1rem; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em;">TGIF (Thank God It's Friday) — Full Playbook</h3>
+      <p style="font-size: 0.93rem; margin-bottom: 1.5rem; color: var(--muted);">From ZMG and stolpilot's detailed PDF explanation — one of the most reliable Friday models.</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-size: 0.92rem;">
+        <div>
+          <h4 style="margin-bottom: 0.8rem;">How to Draw the TGIF Fibonacci</h4>
+          <ol style="list-style: decimal; padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li><strong>Identify the Weekly Range:</strong> On Friday morning, find the highest high and lowest low of the week (Monday–Thursday). Include wicks.</li>
+            <li><strong>Bullish week:</strong> Draw Fib from weekly Low → weekly High</li>
+            <li><strong>Bearish week:</strong> Draw Fib from weekly High → weekly Low</li>
+            <li><strong>Key levels:</strong> 0.2 and 0.3 are the primary targets. 0.62–0.79 are OTE levels for deeper retracements.</li>
+            <li><strong>Setup:</strong> After a strong week, look for Friday to make a "Judas Swing" (push beyond Thursday's extreme) then reverse toward 0.2 / 0.3.</li>
+            <li><strong>Confluence:</strong> Look for price to return into a FVG or OB created earlier in the week at the 0.2 / 0.3 level.</li>
+          </ol>
+        </div>
+        <div>
+          <h4 style="margin-bottom: 0.8rem;">TGIF Rules & Fibonacci Settings</h4>
+          <div style="font-family: 'DM Mono', monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 1rem; border: 1px solid var(--border); margin-bottom: 1rem;">
+            <div style="color: var(--accent); margin-bottom: 0.3rem;">// Fibonacci levels (ICT config)</div>
+            <div>0.0 → Start (week's origin)</div>
+            <div>0.2 → <span style="color: var(--accent2);">Primary target 1</span></div>
+            <div>0.3 → <span style="color: var(--accent2);">Primary target 2</span></div>
+            <div>0.5 → Equilibrium</div>
+            <div>0.62 / 0.705 / 0.79 → OTE levels</div>
+            <div>1.0 → End (week's opposite extreme)</div>
+          </div>
+          <div style="font-size: 0.88rem; color: var(--muted);">
+            ZMG: "You take weekly candle and measure the FIB from wick to wick with 0.2 and 0.3 as the targets. Basically you want price above those levels and usually going into the afternoon. Doesn't have to make the high on Friday." Entry is your normal long/short — the levels are just your targets. "When it works it delivers in spades."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AMT Framework -->
+    <div style="background: var(--surface); border: 1px solid var(--border); padding: 2rem; margin-top: 1.5rem;">
+      <h3 style="margin-bottom: 1rem; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em;">Auction Market Theory (AMT) — The Underlying Framework</h3>
+      <p style="font-size: 0.93rem; margin-bottom: 1.5rem; color: var(--muted);">From the PDF's hand-drawn AMT diagram (@Stoiiic). This is the foundational market understanding that ICT concepts are built on top of.</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-size: 0.92rem;">
+        <div>
+          <h4 style="margin-bottom: 0.8rem;">Core AMT Concepts</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li style="padding-left: 1.2rem; position: relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span> <strong>AMT is a framework, not a strategy</strong> — it explains how buyers and sellers interact. Price is driven by "aggression" (market orders / takers) overwhelming "makers" (limit orders).</li>
+            <li style="padding-left: 1.2rem; position: relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span> <strong>Two market modes:</strong> Balance (rotational, ranging, indecision) and Imbalance (trending, aggressive conviction). Market spends ~80% of time in balance.</li>
+            <li style="padding-left: 1.2rem; position: relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span> <strong>The Value Area:</strong> VAH (Value Area High) and VAL (Value Area Low) — the zone where ~68% of volume transacts (1 standard deviation). POC = most volume transacted.</li>
+            <li style="padding-left: 1.2rem; position: relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span> <strong>Imbalance = trading opportunity:</strong> When price moves outside the value area, it's in a state of imbalance and will seek to return to equilibrium (VWAP/POC).</li>
+            <li style="padding-left: 1.2rem; position: relative;"><span style="position:absolute;left:0;color:var(--accent);">→</span> <strong>AMT = Price + Volume + Time</strong> — the three dimensions. ICT uses Price and Time. Adding Volume (footprint/VWAP) gives the full picture.</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="margin-bottom: 0.8rem;">AMT → ICT Translation</h4>
+          <div style="font-size: 0.88rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border);">
+              <div style="padding: 0.6rem 0.8rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted);">AMT TERM</div>
+              <div style="padding: 0.6rem 0.8rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted);">ICT EQUIVALENT</div>
+              <div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">Value Area</div><div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">Premium / Discount range</div>
+              <div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">VAH / VAL</div><div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">SIBI / BISI extremes</div>
+              <div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">POC (Point of Control)</div><div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">CE of range / equilibrium</div>
+              <div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">Balance (ranging)</div><div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">Accumulation / Consolidation</div>
+              <div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">Imbalance (trending)</div><div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">Displacement / FVG formation</div>
+              <div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">Acceptance outside value</div><div style="padding: 0.5rem 0.8rem; border-bottom: 1px solid rgba(30,37,48,0.5);">Break of Structure (BOS)</div>
+              <div style="padding: 0.5rem 0.8rem;">Rotation to other side</div><div style="padding: 0.5rem 0.8rem;">Liquidity sweep + reversal</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VENOM Model -->
+    <div style="background: var(--surface); border: 1px solid rgba(0,229,160,0.15); padding: 2rem; margin-top: 1.5rem;">
+      <h3 style="margin-bottom: 1rem; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em; color: var(--accent);">VENOM Model — ICT + Footprint + Volume Profile</h3>
+      <p style="font-size: 0.93rem; margin-bottom: 1.2rem; color: var(--muted);">From the EURUSD A++ trade breakdown (Cyph3r). One of the most sophisticated models shared in the PDF.</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-size: 0.92rem;">
+        <div>
+          <h4 style="margin-bottom: 0.8rem;">What is VENOM?</h4>
+          <p style="margin-bottom: 0.8rem;">"VENOM is a BPR (Balance Price Range) FVG and IFVG forming together." — This is an extremely high-confluence overlap where two different inefficiency types co-exist at the same level.</p>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.4rem;">
+            <li style="padding-left: 1.2rem; position: relative;"><span style="position:absolute;left:0;color:var(--accent2);">→</span> <strong>LVN (Low Volume Node):</strong> Area on Volume Profile where very little volume traded — price moves fast through these</li>
+            <li style="padding-left: 1.2rem; position: relative;"><span style="position:absolute;left:0;color:var(--accent2);">→</span> <strong>VAH (Value Area High):</strong> Acts as resistance when price is outside/above value area</li>
+            <li style="padding-left: 1.2rem; position: relative;"><span style="position:absolute;left:0;color:var(--accent2);">→</span> <strong>Buyer absorption on footprint:</strong> Large buy volume at a level that is NOT pushing price higher = smart money absorbing longs to short into</li>
+            <li style="padding-left: 1.2rem; position: relative;"><span style="position:absolute;left:0;color:var(--accent2);">→</span> <strong>Selling aggression:</strong> After absorption, aggressive sell orders appear on the footprint — this is the trigger</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="margin-bottom: 0.8rem;">VENOM Trade Example (EURUSD A++ — 5RR)</h4>
+          <ol style="list-style: decimal; padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
+            <li>30m LVN OR FVG (ICT inefficiency) — the zone</li>
+            <li>VENOM = BPR FVG + IFVG at same level — the high-probability overlay</li>
+            <li>VAH acting as resistance — price above value area (imbalance)</li>
+            <li>Asian High taken — the manipulation completed before entry</li>
+            <li>Buyer absorption on footprint — smart money absorbing retail longs</li>
+            <li>Selling aggression kicks in from POC/VWAP area — the trigger</li>
+            <li>DOL: Equal Low (failed auction) below — clear draw on liquidity</li>
+            <li>Target: POC / VWAP first, then EQL — result: 5RR trade</li>
+          </ol>
+          <div style="margin-top: 0.8rem; font-size: 0.88rem; color: var(--muted); font-style: italic;">"Basically when we are above or below the value area, we are in a state of imbalance and I like to trade mean reversion — target the mean or POC or VWAP of the day." — Cyph3r</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== GLOSSARY ===== -->
+<section>
+  <div class="wrapper">
+    <div class="sec-label">// 10 — Quick Reference</div>
+    <h2>ICT TERMINOLOGY GLOSSARY</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border);">
+      <div style="padding: 0.65rem 1rem; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted);">Term</div>
+      <div style="padding: 0.65rem 1rem; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted);">Meaning</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">FVG</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Fair Value Gap — 3-candle pattern where the middle candle's body leaves an imbalance between the wicks of candle 1 and candle 3.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">IFVG</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Inverted FVG — a bullish FVG that has been violated and now acts as bearish resistance (or vice versa). Entry model: enter on the retest.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">OB</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Order Block — the last opposing candle before a displacement move. Bullish OB = last bearish candle before a strong up-move.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">BB (Breaker Block)</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">An invalidated Order Block. When price sweeps through an OB that "should have held," the OB flips to a Breaker — now it's an opposing signal. "Failed bull is bearish."</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">OTE</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Optimal Trade Entry — the 0.62–0.79 Fibonacci retracement zone of a significant leg. A continuation model, NOT a reversal model.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">ORB</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Opening Range Breakout — the first 5-minute candle at 9:30 AM NY. The midpoint (CE) and extremes are key levels for the day.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">SB (Silver Bullet)</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Time-based model. First FVG in the 10–11AM, 2–3PM, or 3–4AM London window, in the direction of HTF bias. Enter on FVG inversion.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">MSS</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Market Structure Shift — displacement candle that closes beyond the most recent internal swing point in the opposite direction. The entry signal after a sweep.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">BOS</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Break of Structure — price closes beyond a significant swing high (bullish BOS) or swing low (bearish BOS), confirming trend direction.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">SMT</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">SMT Divergence — NQ makes a new low but ES doesn't (or vice versa). The divergence signals the liquidity sweep is false and a reversal is likely.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">DOL</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Draw on Liquidity — where is price GOING? The nearest pool of resting orders that price needs to reach. Always establish DOL before entering.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">BSL / SSL</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Buy-Side Liquidity (resting buy stops above equal highs) / Sell-Side Liquidity (resting sell stops below equal lows). The market sweeps these as part of AMD.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">SIBI / BISI</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Sell-Side Imbalance Buy-Side Inefficiency / Buy-Side Imbalance Sell-Side Inefficiency. A 3-candle FVG pattern with direction context.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">CISD</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Change in State of Delivery — candle that closes beyond a prior swing, signaling delivery direction has changed. The FVG created here is the entry zone.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">PDH / PDL</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Previous Day High / Previous Day Low. Key daily levels that often act as magnets. Unswept PDH/PDL = active draw on liquidity.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">NWOG</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">New Week Opening Gap — the gap between Friday's close and Sunday's open. Price often seeks to close this gap during the week.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">CE</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Consequent Encroachment — the 50% midpoint of a FVG or ORB range. Price frequently reacts at CE before continuing. Often the tightest entry within an FVG.</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">IMR / IR</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Immediate Rebalance / Immediate Retracement — the first pullback after a displacement. Price often returns to the 50% of the initial leg (similar to OTE on micro scale).</div>
+      <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">BPR</div><div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(30,37,48,0.5); font-size:0.88rem;">Balance Price Range — overlapping bullish and bearish FVGs at the same level. The overlap zone is high-probability. VENOM = BPR FVG + IFVG.</div>
+      <div style="padding: 0.6rem 1rem; border-right: 1px solid var(--border); font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--accent2);">IRL / ERL</div><div style="padding: 0.6rem 1rem; font-size:0.88rem;">Internal Range Liquidity (within the current dealing range — short-term swing highs/lows) / External Range Liquidity (beyond the range — old swing highs/lows). Always know which type of liquidity you're targeting.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="wrapper">
+    <p>Platinum SMC Community Analysis · Discord Chat + ICT Trading PDF · March 2026 · ICT / Smart Money Concepts Framework</p>
+    <p style="margin-top: 0.5rem;">This is educational analysis only. Trading involves significant risk of loss. Past performance does not guarantee future results.</p>
+  </div>
+</footer>
+
+</body>
+</html>
